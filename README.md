@@ -2,6 +2,8 @@
 
 Edit and render videos by talking to Claude Code. Heavy work (Whisper transcription and HyperFrames rendering) can run on a rented GPU from [Jarvis Labs](https://jarvislabs.ai), so you don't need a powerful laptop.
 
+![How Claude Video Studio works: raw footage, Claude Code, HyperFrames, Whisper, optional Jarvis GPU, MP4](docs/images/how-it-works.svg)
+
 - **Editing engine:** [HyperFrames](https://github.com/heygen-com/hyperframes) (HeyGen, open source, Apache 2.0). You describe a video; Claude writes HTML/CSS/GSAP compositions; HyperFrames renders MP4.
 - **Transcription:** `faster-whisper` with the `large-v3-turbo` model, for captions and subtitles.
 - **Cloud bridge:** Jarvis Labs CLI (`jl`), linked to Claude Code through its agent skill.
@@ -77,6 +79,11 @@ Run `bash scripts/collect-debug.sh`. It creates `debug-report.zip` with versions
 
 Never commit API keys. `.env` is ignored. Copy `.env.example` to `.env` if you use `JL_API_KEY` directly.
 
-## Need help?
+## Maintainer
 
-Reach out on Instagram: **@unstopablethinker**
+This repo is maintained by **Bala Santhosh**.
+
+- Instagram: [@unstopablethinker](https://instagram.com/unstopablethinker)
+- LinkedIn: [linkedin.com/in/bala-santhoshb](https://www.linkedin.com/in/bala-santhoshb)
+
+Found a bug or have a question? Open an issue on this repo, or message on Instagram or LinkedIn.
