@@ -11,7 +11,7 @@ Setup guide page: `index.html` (publish it with GitHub Pages).
 ## Quick start (local)
 
 ```bash
-git clone https://github.com/<your-user>/claude-video-studio.git
+git clone https://github.com/unstopablethinkerr/claude-video-studio.git
 cd claude-video-studio
 bash scripts/setup-local.sh
 claude            # open Claude Code in this folder
