@@ -1,0 +1,26 @@
+# Large media and generated output
+raws/
+outputs/
+renders/
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.wav
+*.mp3
+*.tgz
+
+# Dependencies and caches
+node_modules/
+__pycache__/
+.venv/
+.cache/
+.DS_Store
+
+# Secrets
+.env
+*.key
+
+# Personal job files (budget data). The example is committed.
+jobs/*.json
+!jobs/job.example.json
