@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Video Studio: Setup Guide</title>
+<style>
+  :root { --bg:#0f1115; --card:#171a21; --text:#e8eaf0; --muted:#9aa3b2; --accent:#7c9cff; --ok:#3ecf8e; --code:#0b0d12; --border:#262b36; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f6f7fb; --card:#ffffff; --text:#1b1f2a; --muted:#5b6474; --accent:#3557d6; --ok:#17965f; --code:#f0f2f7; --border:#dfe3ec; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+  header, main, footer { max-width: 880px; margin: 0 auto; padding: 24px 20px; }
+  header h1 { margin: 8px 0 4px; font-size: 2rem; }
+  header p { color: var(--muted); margin: 0; }
+  section { background: var(--card); border:1px solid var(--border); border-radius: 12px; padding: 20px 22px; margin: 18px 0; }
+  h2 { margin: 0 0 10px; font-size: 1.25rem; }
+  h3 { margin: 16px 0 6px; font-size: 1rem; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  pre { background: var(--code); border:1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; position: relative; font-size: .9rem; margin: 8px 0; }
+  .copy { position:absolute; top:6px; right:6px; font-size:.75rem; padding:3px 8px; border-radius:6px; border:1px solid var(--border); background:var(--card); color:var(--text); cursor:pointer; }
+  .step { display:flex; gap:12px; align-items:flex-start; padding: 10px 0; border-top: 1px dashed var(--border); }
+  .step:first-of-type { border-top: 0; }
+  .step input { margin-top: 6px; width: 18px; height: 18px; accent-color: var(--ok); }
+  .step.done label { color: var(--muted); text-decoration: line-through; }
+  label { cursor: pointer; }
+  .tag { display:inline-block; font-size:.75rem; padding:2px 8px; border-radius:999px; border:1px solid var(--border); color:var(--muted); margin-right:4px; }
+  table { width:100%; border-collapse: collapse; font-size: .95rem; }
+  th, td { text-align:left; padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .warn { border-left: 3px solid #e0a03a; padding: 6px 12px; background: rgba(224,160,58,.08); border-radius: 6px; }
+  .progress { height: 8px; background: var(--border); border-radius: 999px; overflow:hidden; margin: 10px 0 0; }
+  .progress > div { height:100%; width:0%; background: var(--ok); transition: width .3s; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 8px; }
+  .grid label { display:flex; flex-direction:column; gap:4px; font-size:.9rem; color:var(--muted); }
+  .grid input { padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:var(--code); color:var(--text); font-size:1rem; }
+  .btn { padding:8px 14px; border-radius:8px; border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; font-size:.95rem; margin-right:6px; }
+  .result { margin-top:14px; padding:12px 14px; border-radius:8px; border:1px solid var(--border); white-space: pre-line; font-family: ui-monospace, Menlo, Consolas, monospace; font-size:.9rem; }
+  .result.ok { border-color: var(--ok); }
+  .result.stop { border-color: #e05a5a; }
+  a { color: var(--accent); }
+  footer { color: var(--muted); font-size: .9rem; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <span class="tag">Claude Code</span><span class="tag">HyperFrames</span><span class="tag">Jarvis Labs</span><span class="tag">Whisper</span>
+  <h1>Claude Video Studio</h1>
+  <p>Edit and render videos by talking to Claude, with heavy work offloaded to a rented GPU when your machine is slow.</p>
+</header>
+
+<main>
+
+<section>
+  <h2>How it works</h2>
+  <p>Your video is written as HTML, so Claude Code can edit it like any other code. HyperFrames renders the result to MP4. Whisper creates captions. Jarvis Labs runs the heavy steps on a GPU when your laptop can't keep up.</p>
+  <p class="warn">Before you start: this is a guide, not a one-click install. Costs, GPU availability, and CLI flags change over time. Check <code>jl gpus</code> and <code>jl --help</code> before large jobs.</p>
+</section>
+
+<section id="job-form">
+  <h2>Job form: check before any cloud run</h2>
+  <p class="warn"><strong>Cloud GPUs are billed from your wallet by the hour, while they run.</strong> A forgotten instance keeps charging, and a paused one still bills its storage. Fill this in and confirm the numbers before you create or resume an instance.</p>
+  <p style="color:var(--muted)">This form runs only in your browser. It never asks for your API token. Paste the balance and price from your own terminal.</p>
+  <div class="grid">
+    <label>Project name (letters, numbers, hyphens)<input id="f-project" value="my-video-batch"></label>
+    <label>Target number of output videos<input id="f-videos" type="number" min="1" value="5"></label>
+    <label>Hours of GPU time per video (estimate)<input id="f-hpv" type="number" min="0.1" step="0.1" value="0.5"></label>
+    <label>GPU type (from <code>jl gpus</code>)<input id="f-gpu" value="A100"></label>
+    <label>Price per hour for that GPU (from <code>jl gpus</code>)<input id="f-price" type="number" min="0" step="0.01" value="1.20"></label>
+    <label>Number of GPUs<input id="f-ngpu" type="number" min="1" value="1"></label>
+    <label>Wallet balance (from <code>jl status</code>)<input id="f-balance" type="number" min="0" step="0.01" value="0"></label>
+    <label>Hard cap on total hours for this job<input id="f-cap" type="number" min="0.5" step="0.5" value="6"></label>
+    <label>Existing instance ID (optional; leave empty to create a new one)<input id="f-machine" placeholder="e.g. 123456"></label>
+  </div>
+  <div id="form-result" class="result"></div>
+  <p>
+    <button class="btn" id="btn-json">Download job.json</button>
+    <button class="btn" id="btn-summary">Copy summary for Claude Code</button>
+  </p>
+  <p style="color:var(--muted);font-size:.9rem">If you made the instance by hand, paste its ID (run <code>python3 scripts/find-instance.py</code>). Save the file as <code>jobs/job.json</code>. Then tell Claude Code to run the budget check and wait for your confirmation before anything is created.</p>
+</section>
+
+<section>
+  <h2>Setup checklist</h2>
+  <p style="color:var(--muted);margin-top:0">Tick steps as you go. Progress is saved in this browser only.</p>
+  <div class="progress"><div id="bar"></div></div>
+  <p id="count" style="color:var(--muted);font-size:.9rem;margin:6px 0 0"></p>
+  <div id="checklist"></div>
+</section>
+
+<section>
+  <h2>1. Install the basics locally</h2>
+  <p>You need Node.js 22 or newer, Git, and Claude Code. Then clone this repo and run the setup script.</p>
+  <pre><button class="copy">Copy</button>git clone https://github.com/&lt;your-user&gt;/claude-video-studio.git
+cd claude-video-studio
+bash scripts/setup-local.sh</pre>
+  <p>Test the starter project before you start your own:</p>
+  <pre><button class="copy">Copy</button>npx --yes hyperframes@0.9.19 lint projects/starter
+npx --yes hyperframes@0.9.19 render projects/starter -o outputs/starter.mp4</pre>
+  <p class="warn">Rendering needs a browser. If it says "Chrome not found", run <code>npx --yes hyperframes@0.9.19 browser ensure</code>, or install Google Chrome and set <code>HYPERFRAMES_BROWSER_PATH</code> to its path.</p>
+</section>
+
+<section>
+  <h2>2. Create a Jarvis Labs account</h2>
+  <ol>
+    <li>Sign up at <a href="https://jarvislabs.ai" target="_blank" rel="noopener">jarvislabs.ai</a> and add funds to your wallet.</li>
+    <li>Open the API keys page in your account settings and create a token.</li>
+    <li>Check which GPUs are available and what they cost before you choose one:</li>
+  </ol>
+  <pre><button class="copy">Copy</button>jl gpus</pre>
+  <h3>How to choose a GPU</h3>
+  <table>
+    <tr><th>Your job</th><th>What to pick</th></tr>
+    <tr><td>Transcribing with Whisper (large-v3-turbo)</td><td>A mid-range GPU with 16 GB or more VRAM is plenty</td></tr>
+    <tr><td>Rendering HyperFrames projects</td><td>A CPU-heavy, mid-size instance; benchmark one project first</td></tr>
+    <tr><td>Both in one session</td><td>Create one instance with enough storage and run both steps on it</td></tr>
+  </table>
+  <p style="color:var(--muted)">Pick the cheapest option that finishes a test video in a reasonable time, then scale up if needed.</p>
+</section>
+
+<section>
+  <h2>3. Connect the Jarvis CLI to Claude Code</h2>
+  <p>Install the CLI and run setup. Choose Claude Code when asked, so the Jarvis skill lands in <code>~/.claude/skills/</code>.</p>
+  <pre><button class="copy">Copy</button>uv tool install jarvislabs
+jl setup
+jl status</pre>
+  <p>Non-interactive option, if you already have a token:</p>
+  <pre><button class="copy">Copy</button>jl setup --token YOUR_TOKEN --agents claude-code --yes</pre>
+  <p>Then start Claude Code in the repo and ask it to check your account, for example "Check my Jarvis balance and list my GPUs."</p>
+</section>
+
+<section>
+  <h2>4. Create an instance</h2>
+  <pre><button class="copy">Copy</button>jl create --gpu &lt;GPU_NAME&gt; --storage 100 --name video-studio
+jl list                # note the machine ID
+jl ssh &lt;machine_id&gt;     # optional: look around the instance
+jl pause &lt;machine_id&gt;   # stop compute billing when done</pre>
+  <div class="warn"><code>jl destroy</code> deletes the instance and its data. Use <code>jl pause</code> unless you're finished for good.</div>
+</section>
+
+<section>
+  <h2>5. Folder setup</h2>
+  <pre>claude-video-studio/
+├── raws/          ← drop your original footage here (not in git)
+├── projects/      ← one folder per video (HyperFrames compositions, in git)
+│   └── my-video/
+│       └── index.html
+├── outputs/       ← renders and subtitles land here (not in git)
+├── scripts/       ← setup, upload, transcribe, cloud render
+└── CLAUDE.md      ← instructions Claude reads before working here</pre>
+  <p>Create a new video project from inside Claude Code, or run:</p>
+  <pre><button class="copy">Copy</button>cd projects && npx --yes hyperframes@0.9.19 init my-video --non-interactive --example blank --skip-skills</pre>
+  <p>Render it:</p>
+  <pre><button class="copy">Copy</button>npx --yes hyperframes@0.9.19 render projects/my-video -o outputs/my-video.mp4</pre>
+</section>
+
+<section>
+  <h2>6. Use the cloud for bulk work</h2>
+  <p>Once footage is in <code>raws/</code> and projects are ready, one command does the rest: upload, install tools on the instance, transcribe, render every project, and download the results.</p>
+  <pre><button class="copy">Copy</button>bash scripts/cloud-render.sh &lt;machine_id&gt;</pre>
+  <p>Remote commands use <code>jl exec &lt;machine_id&gt; -- &lt;command&gt;</code>. The <code>--</code> is required.</p>
+  <p class="warn">The instance must be running. Check with <code>jl list</code>. Run <code>jl exec --help</code>, <code>jl upload --help</code>, and <code>jl download --help</code> if a command behaves differently, because the CLI is still changing.</p>
+  <p>Stop billing when finished:</p>
+  <pre><button class="copy">Copy</button>jl pause &lt;machine_id&gt;</pre>
+</section>
+
+<section>
+  <h2>7. Ask Claude for a video</h2>
+  <pre><button class="copy">Copy</button>Create a 20-second teaser in projects/teaser-1 using raws/clip1.mp4.
+Add captions from the transcript, keep the title in the lower third,
+and render to outputs/teaser-1.mp4. Lint and inspect before rendering.</pre>
+</section>
+
+<section>
+  <h2>Need help?</h2>
+  <p>If something breaks, run <code>bash scripts/collect-debug.sh</code>. It creates <code>debug-report.zip</code> with versions and diagnostics (tokens redacted). Share that zip with the maintainer or attach it to a GitHub issue.</p>
+  <p>If you get stuck on any step, message me on Instagram: <a href="https://instagram.com/unstopablethinker" target="_blank" rel="noopener"><strong>@unstopablethinker</strong></a></p>
+</section>
+
+</main>
+
+<footer>
+  Built for creators who want to edit with Claude. Read the full analysis in <code>docs/ANALYSIS.md</code>.
+</footer>
+
+<script>
+(function () {
+  var steps = [
+    "Install Node 22+ and clone the repo",
+    "Run scripts/setup-local.sh",
+    "Create a Jarvis Labs account and add funds",
+    "Create an API token",
+    "Run jl setup and choose Claude Code",
+    "Check balance with jl status",
+    "Pick a GPU with jl gpus",
+    "Create an instance with jl create",
+    "Put footage into raws/",
+    "Create a project with npx hyperframes init",
+    "Lint and render the starter project",
+    "Run cloud-render.sh for the bulk job",
+    "Pause the instance when finished"
+  ];
+  var key = "cvs-checklist";
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(key) || "{}"); } catch (e) {}
+  var list = document.getElementById("checklist");
+  steps.forEach(function (text, i) {
+    var row = document.createElement("div");
+    row.className = "step" + (saved[i] ? " done" : "");
+    var id = "s" + i;
+    row.innerHTML = '<input type="checkbox" id="' + id + '"' + (saved[i] ? " checked" : "") + '><label for="' + id + '"></label>';
+    row.querySelector("label").textContent = (i + 1) + ". " + text;
+    list.appendChild(row);
+    row.querySelector("input").addEventListener("change", function (e) {
+      saved[i] = e.target.checked;
+      row.classList.toggle("done", e.target.checked);
+      try { localStorage.setItem(key, JSON.stringify(saved)); } catch (err) {}
+      update();
+    });
+  });
+  function update() {
+    var n = steps.filter(function (_, i) { return saved[i]; }).length;
+    document.getElementById("bar").style.width = (n / steps.length * 100) + "%";
+    document.getElementById("count").textContent = n + " of " + steps.length + " done";
+  }
+  update();
+  document.querySelectorAll(".copy").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var text = btn.parentElement.innerText.replace(/^Copy\n?/, "");
+      navigator.clipboard.writeText(text).then(function () {
+        btn.textContent = "Copied";
+        setTimeout(function () { btn.textContent = "Copy"; }, 1500);
+      });
+    });
+  });
+})();
+</script>
+<script>
+(function () {
+  function v(id) { return document.getElementById(id).value.trim(); }
+  function n(id) { return parseFloat(v(id)) || 0; }
+  var validSlug = /^[a-z0-9][a-z0-9-]{1,60}$/;
+
+  function compute() {
+    var videos = n("f-videos"), hpv = n("f-hpv"), price = n("f-price"), ngpu = Math.max(1, Math.floor(n("f-ngpu"))),
+        balance = n("f-balance"), cap = n("f-cap");
+    var hours = videos * hpv, compute = price * ngpu * hours, required = compute * 1.2;
+    var problems = [];
+    if (!validSlug.test(v("f-project"))) problems.push("Project name: use lowercase letters, numbers and hyphens (e.g. my-video-batch).");
+    if (videos < 1) problems.push("Enter at least 1 target video.");
+    if (price <= 0) problems.push("Enter the price per hour from `jl gpus`.");
+    if (hours > cap) problems.push("Total hours (" + hours.toFixed(2) + ") are over your cap (" + cap + "). Raise the cap on purpose or reduce the job.");
+    if (balance < required) problems.push("Balance " + balance.toFixed(2) + " is below the required " + required.toFixed(2) + " (includes 20% margin). Top up or reduce the job.");
+    return { videos: videos, hpv: hpv, hours: hours, price: price, ngpu: ngpu, compute: compute, required: required,
+             balance: balance, cap: cap, problems: problems, gpu: v("f-gpu"), project: v("f-project") };
+  }
+
+  function render() {
+    var r = compute(), box = document.getElementById("form-result");
+    var lines = [
+      "Project:        " + r.project,
+      "Output videos:  " + r.videos + "  x  " + r.hpv + " h each  =  " + r.hours.toFixed(2) + " h total",
+      "GPU:            " + r.gpu + " x" + r.ngpu + " at " + r.price.toFixed(2) + "/h",
+      "Estimated cost: " + r.compute.toFixed(2),
+      "Required (+20): " + r.required.toFixed(2),
+      "Your balance:   " + r.balance.toFixed(2),
+      "Storage and idle time are billed separately."
+    ];
+    if (r.problems.length) {
+      box.className = "result stop";
+      box.textContent = lines.join("\n") + "\n\nNOT READY:\n- " + r.problems.join("\n- ");
+    } else {
+      box.className = "result ok";
+      box.textContent = lines.join("\n") + "\n\nOK to proceed after you confirm in Claude Code.";
+    }
+    return r;
+  }
+
+  document.querySelectorAll("#job-form input").forEach(function (el) { el.addEventListener("input", render); });
+
+  document.getElementById("btn-json").addEventListener("click", function () {
+    var r = render();
+    var job = { project: r.project, machine_id: v("f-machine"), target_videos: r.videos, hours_per_video: r.hpv, gpu_type: r.gpu,
+                region: "", num_gpus: r.ngpu, storage_gb: 100, max_hours: r.cap,
+                approved_by_user: false, notes: "Created from the job form. Confirm in chat before any instance is created." };
+    var blob = new Blob([JSON.stringify(job, null, 2) + "\n"], { type: "application/json" });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "job.json"; a.click();
+  });
+
+  document.getElementById("btn-summary").addEventListener("click", function (e) {
+    var r = render();
+    var text = "Job check request. Please run `python3 scripts/check-budget.py jobs/job.json` after I save the job file.\n" +
+               document.getElementById("form-result").textContent +
+               "\nDo not create, resume, or destroy any instance until I confirm in this chat.";
+    navigator.clipboard.writeText(text).then(function () { e.target.textContent = "Copied"; setTimeout(function () { e.target.textContent = "Copy summary for Claude Code"; }, 1500); });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

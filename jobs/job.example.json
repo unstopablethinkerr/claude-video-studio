@@ -1,0 +1,12 @@
+{
+  "project": "my-video-batch",
+  "machine_id": "",
+  "target_videos": 5,
+  "hours_per_video": 0.5,
+  "gpu_type": "A100",
+  "region": "",
+  "num_gpus": 1,
+  "storage_gb": 100,
+  "max_hours": 6,
+  "notes": "machine_id: leave empty to create a new instance, or paste the ID of one you made by hand (see scripts/find-instance.py). Copy to job.json and edit; job.json is not committed."
+}
